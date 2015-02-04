@@ -3,57 +3,64 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
-#define  NUM_THREADS 200
+#include <unistd.h>
+
+#define  NUM_THREADS 	  10000
+#define  CALCS_PER_THREAD 10000
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+double total = 0;
 
 void * computePi(void * threadid){
-	printf("I'm a thread\n");
-	pthread_exit(NULL);
+	int rc;
+
+	rc = pthread_mutex_lock(&mutex);
+
+	int i = ((int)threadid * CALCS_PER_THREAD);
+	int calcs = 0;
+	for(i; calcs < CALCS_PER_THREAD; i++){
+		total += pow(-1, i) / (2 * i + 1);
+		calcs += 1;
+	}
+	sleep((random()%500000)/1000000.0);
+	rc = pthread_mutex_unlock(&mutex);
+	return NULL;
 }
 
 int main(int argc, const char * argv[]){
+	long cores = sysconf(_SC_NPROCESSORS_ONLN);
+	printf("Number of cores: %ld\n", cores);
+
+	// Current time
 	clock_t start = clock();
 	clock_t end = 0;
 	
 	pthread_t threads[NUM_THREADS];
-	int rc, t;
+	int rc = 0;
+	int t;
 	
+	rc = pthread_mutex_lock(&mutex);
 	for(t = 0; t < NUM_THREADS; t++){
-		printf("Creating thread %d\n", t);
-		rc = pthread_create(&threads[t], NULL, computePi, (void *)t);
-		
+
+		rc = pthread_create(&threads[t], NULL, computePi, (void *)t);		
 		if(rc){
 			printf("ERROR return code from pthread_create(): %d\n", rc);
 			exit(-1);
 		}
 	}
-	
+
+	sleep(5);
+	rc = pthread_mutex_unlock(&mutex);
 	for(t = 0; t < NUM_THREADS; t++){
 		pthread_join(threads[t], NULL);
 	}
 	
-	end  = clock();
-	printf("Elapsed time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
-	return(0);
-	
-	/*
-	
-	
-	int limit = 10000000;
-	int i;
-	double result = 1;
-	
-	double total = 0;
+	printf("Total %.15f\n", total * 4);
+	rc = pthread_mutex_destroy(&mutex);
 
-	clock_t end = 0;
-	for(i = 0; i < limit; i++){
-		total += pow(-1, i) / (2 * i + 1);
-	}
-	total *= 4;
-	
-	end = clock();
-	
-	printf("Pi: %.7f\n", total);
-	printf("Elapsed time: %f s\n", (double)(end - start) / CLOCKS_PER_SEC);
-	*/
+	// Get end time after all computations
+	end  = clock();
+	printf("Elapsed time: %f s\n",(double)(end - start) / CLOCKS_PER_SEC + 5);
 	return 0;
+	
 }
