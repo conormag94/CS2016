@@ -1,9 +1,0 @@
-#include <pthread.h>
-#include <stdio.h>
-#include <stlib.h>
-#define  NUM_THREADS 6
-
-int main(int argc, const char * argv[]){
-	printf("Hello\n");
-	return 0;
-}
