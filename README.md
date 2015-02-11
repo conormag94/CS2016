@@ -1,10 +1,6 @@
 # CS2016-Labs
 Labs for CS2016 - Concurrent Systems and Operating Systems
 
-**_This_** is an ongoing lab
-
-~~**This**~~ is a completed lab
-
 ## ~~Lab 1 (1% of Final Mark)~~
 [Compute Pi Using Threads](https://www.scss.tcd.ie/CourseModules/CS2016/Assets/Practicals/p1/practical.pdf)
 
