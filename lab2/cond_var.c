@@ -26,12 +26,13 @@ int                     sharedData=0;
 void *theThread(void *threadid)
 {
 	int   rc;
+	int   retries=2;
 	
 	printf("Consumer Thread %.8x: Entered\n",(int)threadid);
 	rc = pthread_mutex_lock(&dataMutex);
 	checkResults("pthread_mutex_lock()\n", rc);
 	
-	while (TRUE) {
+	while (retries--) {
 		/* The boolean dataPresent value is required for safe use of */
 		/* condition variables. If no data is present we wait, other */
 		/* wise we process immediately.                              */
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
 {
 	pthread_t             thread[NUMTHREADS];
 	int                   rc=0;
-	int                   amountOfData=40;
+	int                   amountOfData=4;
 	int                   i;
 	
 	printf("Enter Testcase - %s\n", argv[0]);
