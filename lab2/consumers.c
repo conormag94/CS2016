@@ -24,9 +24,15 @@ struct buffer{
 	boolean is_full;
 }buffer;
 
+void *theProducer(void *threadid){
+	return NULL;
+}
+
 void *theConsumer(void *threadid){
 	return NULL;
 }
+
+
 
 int main(){
 
