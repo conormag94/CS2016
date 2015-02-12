@@ -16,7 +16,7 @@ exit(1);                                     \
 }                                              \
 }
 
-#define                 NUMTHREADS     
+#define                 NUMTHREADS     2
 pthread_mutex_t         dataMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t          dataPresentCondition = PTHREAD_COND_INITIALIZER;
 int                     dataPresent=0;

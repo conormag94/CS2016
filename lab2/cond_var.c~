@@ -5,7 +5,6 @@
 
 typedef enum { FALSE, TRUE } boolean;
 
-
 // Adapted from http://publib.boulder.ibm.com/infocenter/iseries/v5r3/index.jsp?topic=/rzahw/rzahwe17rx.htm
 // Fixed to eliminate nonstandard pthread_getthreadid_np()
 // Bug fixes
@@ -17,7 +16,7 @@ exit(1);                                     \
 }                                              \
 }
 
-#define                 NUMTHREADS     4
+#define                 NUMTHREADS     2
 pthread_mutex_t         dataMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t          dataPresentCondition = PTHREAD_COND_INITIALIZER;
 int                     dataPresent=0;
@@ -73,7 +72,7 @@ int main(int argc, char **argv)
 	printf("Enter Testcase - %s\n", argv[0]);
 	
 	printf("Create/start threads\n");
-	for (i=0; i <NUMTHREADS; ++i) {
+	for (i=0; i <NUMTHREADS; i++) {
 		rc = pthread_create(&thread[i], NULL, theThread, (void *)i);
 		checkResults("pthread_create()\n", rc);
 	}
