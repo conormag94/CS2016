@@ -33,11 +33,7 @@ void *theConsumer(void *threadid){
 }
 
 int main(){
-	
-	pthread_t 		thread[NUMTHREADS];
-	int				rc =0;
-	int 			amountOfData=4;
-	int 			i;
+
 	buffer.current_items = 5;
 	buffer.is_full = TRUE;
 
