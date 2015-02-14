@@ -13,8 +13,8 @@ exit(1);                                     \
 }                                              \
 }
 
-#define					BUFFER_CAPACITY 16
-#define                 NUM_CONSUMERS   8
+#define					BUFFER_CAPACITY 20
+#define                 NUM_CONSUMERS   9
 #define					NUM_PRODUCERS   1
 
 pthread_mutex_t         dataMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -53,8 +53,9 @@ void print_buffer(int items){
 void *theProducer(void *threadid){
 
 	int rc;
-	
-	printf("Producer Thread %.4x: Entered\n", (int)threadid);
+	int id = (int)threadid;
+
+	printf("Producer Thread %.4x: Entered\n", id);
 	
 	while(TRUE){
 
@@ -64,19 +65,19 @@ void *theProducer(void *threadid){
 		checkResults("pthread_mutex_lock\n", rc);
 
 		while(buffer.current_items >= BUFFER_CAPACITY){
-			printf("Producer #%.4x: waiting...\n", (int)threadid);
+			printf("Producer #%.4x: waiting...\n", id);
 			
 			// Wait for space to become available in the buffer 
 			rc = pthread_cond_wait(&bufferFullCondition, &dataMutex);
 
-			//usleep(500000ULL * rand() / RAND_MAX);
+			//usleep(100000ULL * rand() / RAND_MAX);
 			if(rc){
 				printf("Producer condwait failed");
 				pthread_mutex_unlock(&dataMutex);
 				exit(1);
 			}
 		}
-		printf("Producer #%.4x: PRODUCED 	", (int)threadid);
+		printf("Producer #%.4x: PRODUCED 	", id);
 
 		++buffer.current_items;
 
@@ -84,7 +85,6 @@ void *theProducer(void *threadid){
 			bufferFull = 1;
 		}
 
-		//printf("%d\n", buffer.current_items);
 		print_buffer(buffer.current_items);
 
 		// Notify threads there is something in buffer to be consumed
@@ -94,26 +94,25 @@ void *theProducer(void *threadid){
 	}
 
 
-	printf("Producer Thread %.4x: All done\n",(int)threadid);
+	printf("Producer Thread %.4x: All done\n",id);
 	return NULL;
 }
 
 void *theConsumer(void *threadid){
 	
 	int rc;
-	
-	printf("Consumer Thread %.4x: Entered\n", (int)threadid);
+	int id = (int)threadid;
+	printf("Consumer Thread %.4x: Entered\n", id);
 
 	while(TRUE){
-		//printf("Waiting to consume\n");
+		printf("Consumer #%.4x: waiting...\n", id);
 		usleep(1000000ULL * rand() / RAND_MAX);
-		//sleep(2);
 
 		rc = pthread_mutex_lock(&dataMutex);
 		checkResults("pthread_mutex_lock\n", rc);
 
 		while(buffer.current_items == 0){
-			printf("Consumer #%.4x: waiting...\n", (int)threadid);
+			printf("Consumer #%.4x: waiting...\n", id);
 			rc = pthread_cond_wait(&bufferEmptyCondition, &dataMutex);
 
 			usleep(1000000ULL * rand() / RAND_MAX);
@@ -124,7 +123,7 @@ void *theConsumer(void *threadid){
 			}
 		}
 
-		printf("Consumer #%.4x: CONSUMED 	", (int)threadid);
+		printf("Consumer #%.4x: CONSUMED 	", id);
 		--buffer.current_items;
 
 		if(buffer.current_items == 0){
@@ -132,14 +131,14 @@ void *theConsumer(void *threadid){
 		}
 
 		print_buffer(buffer.current_items);
-		//printf("%d\n", buffer.current_items);
+
 		pthread_cond_signal(&bufferFullCondition);
 		rc = pthread_mutex_unlock(&dataMutex);
 		checkResults("pthread_mutex_unlock\n", rc);
 	}
 
 
-	printf("Consumer Thread %.4x: All done\n",(int)threadid);
+	printf("Consumer Thread %.4x: All done\n",id);
 	return NULL;
 }
 
@@ -150,22 +149,21 @@ int main(int argc, char **argv){
 	
 	buffer.current_items = 0;
 	buffer.is_full = FALSE;
-	//printf("BUFFER CREATED\n");
 	
 	int				rc =0;
 	int 			amountOfData=4;
 	int 			i;
 	
-	printf("Create Consumer Threads\n");
-	for(i = 0; i < NUM_CONSUMERS; ++i){
-		rc = pthread_create(&consumers[i], NULL, theConsumer, (void *)i);
-		checkResults("pthread_create()\n", rc);		
-	}
-
 	printf("Create Producer Thread(s)\n");
 	for(i = 0; i < NUM_PRODUCERS; ++i){
 		rc = pthread_create(&producers[i], NULL, theProducer, (void *)i);
 		checkResults("pthread_create()\n", rc);
+	}
+
+	printf("Create Consumer Threads\n");
+	for(i = 0; i < NUM_CONSUMERS; ++i){
+		rc = pthread_create(&consumers[i], NULL, theConsumer, (void *)i);
+		checkResults("pthread_create()\n", rc);		
 	}
 	
 	printf("Joining Consumers\n");
