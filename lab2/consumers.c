@@ -21,7 +21,7 @@ exit(1);                                     \
 #define RESET   "\x1b[0m"
 
 #define					BUFFER_CAPACITY 20
-#define                 NUM_CONSUMERS   9
+#define                 NUM_CONSUMERS   8
 #define					NUM_PRODUCERS   1
 
 pthread_mutex_t         dataMutex = PTHREAD_MUTEX_INITIALIZER;
