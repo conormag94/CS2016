@@ -14,7 +14,7 @@ machine?
 
 + Does using more threads make the program complete more quickly? Why or why not (can you explain it?)
 
-## _Lab 2 (3% of Final Mark)_ 
+## ~~Lab 2 (3% of Final Mark)~~
 [Producer-Consumer & Condition Variables](https://www.scss.tcd.ie/CourseModules/CS2016/Assets/Practicals/p2/practical.pdf)
 
 
