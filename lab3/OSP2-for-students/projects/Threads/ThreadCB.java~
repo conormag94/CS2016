@@ -22,8 +22,7 @@ public class ThreadCB extends IflThreadCB
 
     // Start time: The time taken between a thread's creation and when it first runs
     private static long startTime;
-    
-    // Execution time: The time the thread is actually running
+    // Exectution time: The time the thread is actually running
     private static long executionTime;
 
     
