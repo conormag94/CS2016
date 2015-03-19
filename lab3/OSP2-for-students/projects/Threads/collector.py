@@ -5,8 +5,8 @@ def meanAndVariance(f_name):
 	
 	if(f_name) == "StartTimes.log":
 		print "\nStart Time -> Time between creation and first running"
-	elif(f_name) == "RunningTimes.log":
-		print "\nRunning Time -> Time running (excluding time suspended)"
+	elif(f_name) == "ExecutionTimes.log":
+		print "\nExecutionRatio -> Runtime compared to elapsed time"
 	elif(f_name) == "TurnaroundTimes.log":
 		print "\nTurnaround Time -> Time between creation and deletion"
 
@@ -19,8 +19,9 @@ def meanAndVariance(f_name):
 	with open(f_name, "r") as f_in:
 		for line in f_in:
 			s = line.strip("\n")
-			values.append(int(s))
-			total1 = total1 + int(s)
+			num = float(s) if '.' in s else int(s)
+			values.append(num)
+			total1 = total1 + num
 			count = count + 1
 	f_in.close()
 
@@ -43,7 +44,7 @@ def meanAndVariance(f_name):
 def main():
 	print "** Times measured in ticks **"
 	meanAndVariance("StartTimes.log")
-	meanAndVariance("RunningTimes.log")
+	meanAndVariance("ExecutionTimes.log")
 	meanAndVariance("TurnaroundTimes.log")
 
 if __name__ == '__main__':

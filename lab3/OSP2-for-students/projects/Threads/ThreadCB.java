@@ -25,7 +25,7 @@ public class ThreadCB extends IflThreadCB
     private boolean firstTime = true;
     
     // Execution time: The time the thread is actually running
-    // private static long executionTime;
+    private double executionRatio;
 
     
     // Turnaround Time: Time from when a thread is created to when it is killed
@@ -41,6 +41,7 @@ public class ThreadCB extends IflThreadCB
     private long totalTimeAsleep;
 
     private long timeRunning;
+    private long elapsedTime;
 
 
     /**
@@ -210,13 +211,13 @@ public class ThreadCB extends IflThreadCB
 	     	"Total Time Asleep for " + this + ": " + this.totalTimeAsleep);
 
 	    // 2 - Execution Time
+	    this.elapsedTime = this.timeKilled - this.timeDispatched;	    
 	    this.timeRunning = (this.timeKilled - this.timeDispatched) - this.totalTimeAsleep;
+	    
+	    this.executionRatio = (double)this.timeRunning / (double)this.elapsedTime;
 	    MyOut.print("osp.Threads.ThreadCB",
-	     	"Total Time Running for " + this + ": " + this.timeRunning);
-
-	    this.timeRunning = (this.timeKilled - this.timeDispatched) - this.totalTimeAsleep;
-	    MyOut.print("osp.Threads.ThreadCB",
-	     	"Total Time Running for " + this + ": " + this.timeRunning);
+	     	"Execution Ratio for " + this + ": " + this.executionRatio);
+;
 	    
 	    // 3 - Turnaround Time
 	    this.turnaroundTime = this.timeKilled - this.timeCreated;
