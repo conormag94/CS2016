@@ -21,18 +21,26 @@ public class ThreadCB extends IflThreadCB
     private static GenericList readyQueue;
 
     // Start time: The time taken between a thread's creation and when it first runs
-    private static long startTime;
+    private long startTime;
+    private boolean firstTime = true;
     
     // Execution time: The time the thread is actually running
-    private static long executionTime;
+    // private static long executionTime;
 
     
     // Turnaround Time: Time from when a thread is created to when it is killed
-    private static long turnaroundTime;
+    private long turnaroundTime;
 
-    private static long timeCreated;
-    private static long timeDispatched;
-    private static long timeKilled;
+    private long timeCreated;
+
+    private long timeDispatched;
+    private long timeKilled;
+
+    private long startSuspend;
+    private long endSuspend;
+    private long totalTimeAsleep;
+
+    private long timeRunning;
 
 
     /**
@@ -98,8 +106,9 @@ public class ThreadCB extends IflThreadCB
 	ThreadCB newThread = new ThreadCB();
 	MyOut.print("osp.Threads.ThreadCB", "Created "+newThread);
 
-	timeCreated = HClock.get();
-	MyOut.print("osp.Threads.ThreadCB", "Time Created: " + timeCreated + " - " + newThread);
+	// Get time this thread was created
+	newThread.timeCreated = HClock.get();
+	MyOut.print("osp.Threads.ThreadCB", "Time Created: " + newThread.timeCreated + " - " + newThread);
 			
 	// Setup the new thread.
 	newThread.setPriority(task.getPriority());
@@ -187,13 +196,33 @@ public class ThreadCB extends IflThreadCB
 			"After destroying " + this + ": " + this.getTask() 
 			+ " has no threads left; destroying the task");
 	    this.getTask().kill();
+
+	    this.timeKilled = HClock.get();
+	    MyOut.print("osp.Threads.ThreadCB",
+	     	this + " Time Killed: " + this.timeKilled);
+
+	    // 1 - Start Time
+	    this.startTime = this.timeDispatched - this.timeCreated;
+	    MyOut.print("osp.Threads.ThreadCB",
+	     	"Start Time for " + this + ": " + this.startTime);
+
+	    MyOut.print("osp.Threads.ThreadCB",
+	     	"Total Time Asleep for " + this + ": " + this.totalTimeAsleep);
+
+	    // 2 - Execution Time
+	    this.timeRunning = (this.timeKilled - this.timeDispatched) - this.totalTimeAsleep;
+	    MyOut.print("osp.Threads.ThreadCB",
+	     	"Total Time Running for " + this + ": " + this.timeRunning);
+
+	    this.timeRunning = (this.timeKilled - this.timeDispatched) - this.totalTimeAsleep;
+	    MyOut.print("osp.Threads.ThreadCB",
+	     	"Total Time Running for " + this + ": " + this.timeRunning);
 	    
-	    timeKilled = HClock.get();
-	    turnaroundTime = timeKilled - timeCreated;
+	    // 3 - Turnaround Time
+	    this.turnaroundTime = this.timeKilled - this.timeCreated;
 	    MyOut.print("osp.Threads.ThreadCB",
-	    	this + " Time Killed: " + timeKilled);
-	    MyOut.print("osp.Threads.ThreadCB",
-	    	"Turnaround Time for " + this + ": " + turnaroundTime);
+	     	"Turnaround Time for " + this + ": " + this.turnaroundTime);
+
 	}
     }
 
@@ -217,7 +246,9 @@ public class ThreadCB extends IflThreadCB
     public void do_suspend(Event event)
     {
 	int oldStatus = this.getStatus();
-        MyOut.print(this, "Entering suspend(" + this + "," + event + ")");
+        MyOut.print(this, "Entering suspend(" + this + "," + event + ")" + "s: " + oldStatus);
+
+    
 
 	// Note: "this" might not be the running thread, because we
 	// might be suspending a thread that is in the middle of a system call
@@ -236,11 +267,14 @@ public class ThreadCB extends IflThreadCB
 	    this.getTask().setCurrentThread(null);
 	    
 	// Set thread's status.
-	if (this.getStatus() == ThreadRunning)
+	if (this.getStatus() == ThreadRunning){
 	    setStatus(ThreadWaiting);
+	    this.startSuspend = HClock.get();
+		MyOut.print(this, this + " Suspended @ " + this.startSuspend);		
+	}
 	else if (this.getStatus() >= ThreadWaiting)
 	    setStatus(this.getStatus()+1);
-	
+
 	readyQueue.remove(this);
 	event.addThread(this);
 
@@ -269,9 +303,16 @@ public class ThreadCB extends IflThreadCB
 
         MyOut.print(this, "Resuming " + this);
 
+        
+
         // Set thread's status.
 	if (getStatus() == ThreadWaiting) {
 	    setStatus(ThreadReady);
+	    this.endSuspend = HClock.get();
+		MyOut.print(this, this + " Resumed @ " + this.endSuspend);
+		this.totalTimeAsleep += (this.endSuspend - this.startSuspend);
+		MyOut.print(this, this + " Time Asleep " + (this.endSuspend - this.startSuspend));
+		MyOut.print(this, this + " Time Asleep so far " + this.totalTimeAsleep);
 	} else if (getStatus() > ThreadWaiting)
 	    setStatus(getStatus()-1);
 
@@ -328,7 +369,6 @@ public class ThreadCB extends IflThreadCB
 	    MMU.setPTBR(null);
 	    return FAILURE;
 	}
-
 	// Put the thread on the processor.
 	MMU.setPTBR(threadToDispatch.getTask().getPageTable());
 
@@ -341,13 +381,17 @@ public class ThreadCB extends IflThreadCB
         MyOut.print("osp.Threads.ThreadCB",
 		    "Dispatching " + threadToDispatch);
 
-        timeDispatched = HClock.get();
-        MyOut.print("osp.Threads.ThreadCB",
-        	threadToDispatch + " Time Dispatched: " + timeDispatched);
+        
+        // Get the first time a thread is run
+        if(threadToDispatch.firstTime){
+        	threadToDispatch.timeDispatched = HClock.get();
 
-        startTime = timeDispatched - timeCreated;
-        MyOut.print("osp.Threads.ThreadCB",
-        	"Start time for "  + threadToDispatch + ": " + startTime);
+        	MyOut.print("osp.Threads.ThreadCB",
+        	threadToDispatch + " Time Dispatched: " + threadToDispatch.timeDispatched);
+
+	        threadToDispatch.firstTime = false;
+	    }
+
 
 	HTimer.set(150);
 
