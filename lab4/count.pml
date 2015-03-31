@@ -1,23 +1,43 @@
 int n = 0;
+bool finished = false;
 
-active proctype P() {
-	int temp = n;
-	n = temp + 1;
-	//printf("%d(p) = %d\n", _pid, n);
+proctype P() {
+
+	finished = false;
+	int temp = 0;
+	int i = 0;
+	for(i : 1..10){
+		temp = n;
+		n = temp + 1;
+	}
+
+	finished = true;
+
 }
 
-active proctype Q() {
-	int temp = n;
-	n = temp + 1;
-	//printf("%d(q) = %d\n", _pid, n);
+proctype Q() {
+
+	finished = false;
+	int temp = 0;
+	int i = 0;
+	for(i:1..10){
+		temp = n;
+		n = temp + 1;
+	}
+	finished = true;
 }
 
 init {
-	int i = 0;
-	
 	do
-	:: (i < 10) ->
-		break
+	:: n!=2 ->
+		printf("Starting again\n");
+		n = 0;
+		run P();
+		run Q();
+		if
+		:: finished == true -> assert(n!=2);
+		fi
+	od
 		
 	printf("result = %d\n", n);
 }
