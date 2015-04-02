@@ -1,9 +1,8 @@
 int n = 0;
-bool finished = false;
+int finished = 0;
 
 proctype P() {
 
-	finished = false;
 	int temp = 0;
 	int i = 0;
 	for(i : 1..10){
@@ -11,33 +10,26 @@ proctype P() {
 		n = temp + 1;
 	}
 
-	finished = true;
+	finished = finished + 1;
 
 }
 
 proctype Q() {
 
-	finished = false;
 	int temp = 0;
 	int i = 0;
 	for(i:1..10){
 		temp = n;
 		n = temp + 1;
 	}
-	finished = true;
+	finished = finished + 1;
 }
 
 init {
-	do
-	:: n!=2 ->
-		printf("Starting again\n");
-		n = 0;
-		run P();
-		run Q();
-		if
-		:: finished == true -> assert(n!=2);
-		fi
-	od
-		
-	printf("result = %d\n", n);
+	printf("Starting again\n");
+	n = 0;
+	run P();
+	run Q();
+	(finished == 2);
+	assert(n!=2);					
 }

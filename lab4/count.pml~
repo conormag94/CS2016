@@ -1,40 +1,35 @@
 int n = 0;
+int finished = 0;
 
-active proctype P() {
-	int temp = n;
-	n = temp + 1;
-	//printf("%d(p) = %d\n", _pid, n);
+proctype P() {
+
+	int temp = 0;
+	int i = 0;
+	for(i : 1..10){
+		temp = n;
+		n = temp + 1;
+	}
+
+	finished = finished + 1;
+
 }
 
-active proctype Q() {
-	int temp = n;
-	n = temp + 1;
-	//printf("%d(q) = %d\n", _pid, n);
+proctype Q() {
+
+	int temp = 0;
+	int i = 0;
+	for(i:1..10){
+		temp = n;
+		n = temp + 1;
+	}
+	finished = finished + 1;
 }
 
 init {
-	int i = 0;
+	printf("Starting again\n");
+	n = 0;
 	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	run P();
-	
 	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-	run Q();
-		
-	printf("result = %d\n", n);
+	(finished == 2);
+	assert(n!=2);
 }
